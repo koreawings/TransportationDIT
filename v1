@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="ko" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통학 방법 비교기 Pro - 신입생 스마트 통학 길잡이</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for Step 9 Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Noto Sans KR Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .break-keep {
+            word-break: keep-all;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+    <div class="max-w-md w-full mx-auto min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 shadow-2xl relative border-x border-slate-200 dark:border-slate-800 transition-colors duration-200">
+        
+        <!-- Header -->
+        <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between transition-colors">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-route text-base"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-1.5">
+                        <h1 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">통학 방법 비교기</h1>
+                        <span class="text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800">PRO</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">패스할인·피로도·시급환산 스마트 분석</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons: Dark Mode, Backup/Share, Reset -->
+            <div class="flex items-center space-x-1.5">
+                <button id="btnToggleTheme" onclick="toggleTheme()" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition flex items-center justify-center" title="다크 모드 전환" aria-label="다크 모드 전환">
+                    <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
+                </button>
+                <button onclick="openDataModal()" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition flex items-center justify-center" title="데이터 백업 및 공유" aria-label="데이터 관리">
+                    <i class="fa-solid fa-share-nodes text-xs"></i>
+                </button>
+                <button id="btnResetDefaults" class="text-[11px] text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 active:scale-95 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-indigo-50/60 dark:hover:bg-slate-700 transition flex items-center space-x-1" title="기본 가상 데이터 5개로 복원">
+                    <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i>
+                    <span>초기화</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto pb-24 p-4 space-y-4">
+
+            <!-- SCREEN 1: 비교 홈 (화면 1) -->
+            <section id="viewComparison" class="space-y-3.5">
+                
+                <!-- 8단계: 오늘의 상황 & 내 성향 필터 아코디언 -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs overflow-hidden transition-colors">
+                    <button type="button" onclick="togglePreferenceAccordion()" class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-6 h-6 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-300 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-sliders"></i>
+                            </span>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">오늘의 상황 & 내 성향 맞춤 필터</span>
+                                <span id="activePreferenceSummary" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">프로 지각러 모드 · 맑음 ☀️</span>
+                            </div>
+                        </div>
+                        <i id="accordionChevron" class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200"></i>
+                    </button>
+
+                    <div id="preferenceAccordionBody" class="px-4 pb-4 pt-1 border-t border-slate-100 dark:border-slate-700/60 space-y-3 hidden">
+                        <!-- 성향 프리셋 3종 -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block mb-1.5">나의 통학 성향 선택 (Smart Score 가중치)</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button type="button" onclick="setPersonaMode('TIME_FIRST')" data-persona="TIME_FIRST" class="persona-btn p-2 rounded-xl border text-left transition flex flex-col justify-between">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs">🏃‍♂️</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">시간 70%</span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <p class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100">프로 지각러</p>
+                                        <p class="text-[9px] text-slate-400 dark:text-slate-400">비용10·피로20</p>
+                                    </div>
+                                </button>
+                                <button type="button" onclick="setPersonaMode('COST_FIRST')" data-persona="COST_FIRST" class="persona-btn p-2 rounded-xl border text-left transition flex flex-col justify-between">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs">🪙</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">비용 70%</span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <p class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100">짠테크 모드</p>
+                                        <p class="text-[9px] text-slate-400 dark:text-slate-400">시간20·피로10</p>
+                                    </div>
+                                </button>
+                                <button type="button" onclick="setPersonaMode('COMFORT_FIRST')" data-persona="COMFORT_FIRST" class="persona-btn p-2 rounded-xl border text-left transition flex flex-col justify-between">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs">🔋</span>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">체력 70%</span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <p class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100">체력 보존</p>
+                                        <p class="text-[9px] text-slate-400 dark:text-slate-400">시간20·비용10</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 비/눈 오는 날 시뮬레이터 토글 -->
+                        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900/70 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700">
+                            <div class="flex items-center space-x-2">
+                                <span id="weatherEmoji" class="text-base">☔</span>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-100">비/눈 오는 날 시뮬레이터</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">자전거 및 도보 15분 이상 경로 피로도 급상승·점수 감점</p>
+                                </div>
+                            </div>
+                            <button type="button" id="btnRainToggle" onclick="toggleRainyMode()" role="switch" aria-checked="false" class="w-11 h-6 bg-slate-300 dark:bg-slate-700 rounded-full relative transition-colors duration-200 focus:outline-none shrink-0">
+                                <span id="rainToggleKnob" class="w-4 h-4 bg-white rounded-full shadow-xs absolute top-1 left-1 transition-transform duration-200"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 한 달 등교 일수 & 6단계 교통패스 할인 설정 카드 -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-4 shadow-xs space-y-3.5 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">등교 일수 & 교통패스 할인 설정</span>
+                        </div>
+                        <span class="text-[11px] text-indigo-600 dark:text-indigo-300 font-semibold bg-indigo-50 dark:bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">
+                            왕복(편도×2) 기준
+                        </span>
+                    </div>
+
+                    <!-- 등교 일수 조절 -->
+                    <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-900/70 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <button type="button" onclick="adjustSchoolDays(-1)" aria-label="등교 일수 1일 감소" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center transition shadow-2xs">
+                                <i class="fa-solid fa-minus text-xs"></i>
+                            </button>
+                            <div class="w-14 text-center select-none">
+                                <span id="displaySchoolDays" class="text-lg font-black text-slate-900 dark:text-white">20</span>
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">일</span>
+                            </div>
+                            <button type="button" onclick="adjustSchoolDays(1)" aria-label="등교 일수 1일 증가" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center transition shadow-2xs">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1.5 shrink-0 overflow-x-auto">
+                            <button type="button" onclick="setSchoolDays(12)" class="text-[11px] font-semibold px-2 py-1.5 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 active:scale-95 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition">주3일(12일)</button>
+                            <button type="button" onclick="setSchoolDays(16)" class="text-[11px] font-semibold px-2 py-1.5 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 active:scale-95 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition">주4일(16일)</button>
+                            <button type="button" onclick="setSchoolDays(20)" class="text-[11px] font-semibold px-2 py-1.5 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 hover:text-indigo-600 active:scale-95 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 transition">주5일(20일)</button>
+                        </div>
+                    </div>
+
+                    <!-- 6단계: 한국형 교통패스 할인 옵션 -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center">
+                                <i class="fa-solid fa-ticket text-indigo-500 mr-1.5"></i>교통패스 할인 적용
+                            </span>
+                            <span id="passStatusHint" class="text-[10px] text-slate-400 dark:text-slate-400">월 15회 이상 조건 충족</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <button type="button" onclick="setPassType('NONE')" data-pass="NONE" class="pass-btn py-2 px-2 rounded-xl border text-center transition flex flex-col items-center justify-center">
+                                <span class="text-[11px] font-bold">적용 안 함</span>
+                                <span class="text-[9px] opacity-75">일반 요금</span>
+                            </button>
+                            <button type="button" onclick="setPassType('KPASS')" data-pass="KPASS" class="pass-btn py-2 px-2 rounded-xl border text-center transition flex flex-col items-center justify-center">
+                                <span class="text-[11px] font-bold">K-패스 (청년)</span>
+                                <span class="text-[9px] opacity-80">30% 환급(15회↑)</span>
+                            </button>
+                            <button type="button" onclick="setPassType('CLIMATE')" data-pass="CLIMATE" class="pass-btn py-2 px-2 rounded-xl border text-center transition flex flex-col items-center justify-center">
+                                <span class="text-[11px] font-bold">기후동행 청년</span>
+                                <span class="text-[9px] opacity-80">월 55,000원 상한</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Pick 요약 배너: 시간 1위 vs 비용 1위 추천 -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- 가장 빠른 방법 -->
+                    <div class="bg-gradient-to-br from-blue-900 to-indigo-950 rounded-2xl p-3 text-white shadow-sm flex flex-col justify-between border border-blue-800/40">
+                        <div>
+                            <div class="flex items-center space-x-1 text-blue-200 text-[11px] font-semibold mb-1">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                                <span>가장 빠른 방법</span>
+                            </div>
+                            <h3 id="bestTimeName" class="text-xs sm:text-sm font-bold text-white truncate">분석 중...</h3>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-white/10 flex items-baseline justify-between">
+                            <span class="text-[10px] text-slate-300">편도 시간</span>
+                            <span id="bestTimeVal" class="text-xs font-bold text-amber-300">-</span>
+                        </div>
+                    </div>
+
+                    <!-- 가장 아끼는 방법 -->
+                    <div class="bg-gradient-to-br from-emerald-900 to-teal-950 rounded-2xl p-3 text-white shadow-sm flex flex-col justify-between border border-emerald-800/40">
+                        <div>
+                            <div class="flex items-center space-x-1 text-emerald-200 text-[11px] font-semibold mb-1">
+                                <i class="fa-solid fa-piggy-bank text-emerald-300"></i>
+                                <span>가장 아끼는 방법</span>
+                            </div>
+                            <h3 id="bestCostName" class="text-xs sm:text-sm font-bold text-white truncate">분석 중...</h3>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-white/10 flex items-baseline justify-between">
+                            <span class="text-[10px] text-slate-300">한 달 실교통비</span>
+                            <span id="bestCostVal" class="text-xs font-bold text-emerald-300">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 정렬 기준 선택 탭 (5종: 맞춤 추천순, 시간 우선, 비용 우선, 쾌적순, 환승 적은 순) -->
+                <div class="pt-1 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-1.5">
+                            <h2 class="text-sm font-bold text-slate-900 dark:text-white">비교 결과 목록</h2>
+                            <span id="routeCountBadge" class="text-xs text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 font-bold px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800">0개</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400">정렬 기준 선택</span>
+                    </div>
+
+                    <!-- Filter Buttons -->
+                    <div class="grid grid-cols-5 gap-1 bg-slate-200/80 dark:bg-slate-800 p-1 rounded-xl text-[11px] font-medium">
+                        <button class="sort-tab py-1.5 rounded-lg transition flex items-center justify-center space-x-0.5 bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs font-bold" data-sort="SCORE">
+                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                            <span>추천순</span>
+                        </button>
+                        <button class="sort-tab py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition flex items-center justify-center space-x-0.5" data-sort="TIME">
+                            <i class="fa-regular fa-clock text-[10px]"></i>
+                            <span>시간순</span>
+                        </button>
+                        <button class="sort-tab py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition flex items-center justify-center space-x-0.5" data-sort="COST">
+                            <i class="fa-solid fa-won-sign text-[10px]"></i>
+                            <span>비용순</span>
+                        </button>
+                        <button class="sort-tab py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition flex items-center justify-center space-x-0.5" data-sort="FATIGUE">
+                            <i class="fa-regular fa-face-smile text-[10px]"></i>
+                            <span>쾌적순</span>
+                        </button>
+                        <button class="sort-tab py-1.5 rounded-lg text-slate-600 dark:text-slate-400 transition flex items-center justify-center space-x-0.5" data-sort="TRANSFERS">
+                            <i class="fa-solid fa-shuffle text-[10px]"></i>
+                            <span>환승순</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Route Cards Container -->
+                <div id="routeListContainer" class="space-y-3">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyRoutesState" class="hidden bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-12 px-4 text-center">
+                    <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-950 rounded-full flex items-center justify-center mx-auto text-indigo-500 mb-2">
+                        <i class="fa-solid fa-bus-simple text-xl"></i>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100">등록된 통학 방법이 없습니다</p>
+                    <p class="text-xs text-slate-400 mt-1">하단 '방법 추가' 탭에서 새로운 통학 경로를 추가해 보세요.</p>
+                </div>
+
+            </section>
+
+            <!-- SCREEN 2: 새 통학 방법 등록 & 수정 폼 (화면 2) -->
+            <section id="viewAddRoute" class="space-y-4 hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-5 shadow-xs space-y-4 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 id="formHeaderTitle" class="text-base font-extrabold text-slate-900 dark:text-white">새 통학 방법 추가</h2>
+                            <p id="formHeaderSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">비교할 통학 수단 및 피로도·도보 정보를 입력하세요.</p>
+                        </div>
+                        <button type="button" id="btnCancelEdit" onclick="cancelEditRoute()" class="hidden text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition">
+                            수정 취소
+                        </button>
+                    </div>
+
+                    <form id="addRouteForm" class="space-y-4" onsubmit="event.preventDefault(); handleSaveRoute();" novalidate>
+                        
+                        <!-- 1. 통학 방법 이름 -->
+                        <div>
+                            <label for="inputRouteName" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">통학 방법 이름 *</label>
+                            <input type="text" id="inputRouteName" placeholder="예: 시내버스 100번 직통, 지하철 1호선"
+                                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition">
+                            <p id="nameErrorMsg" class="hidden text-xs text-rose-500 font-medium mt-1.5 flex items-center space-x-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                <span>통학 방법 이름을 입력해 주세요 (공백 불가).</span>
+                            </p>
+                        </div>
+
+                        <!-- 2. 대표 교통수단 유형 -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">대표 교통수단 유형</label>
+                            <div class="grid grid-cols-4 gap-2 text-xs">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="transitType" value="BUS" checked class="peer sr-only">
+                                    <div class="p-2 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center space-y-1 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950 peer-checked:border-indigo-500 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 transition text-center shadow-2xs">
+                                        <i class="fa-solid fa-bus text-sm"></i>
+                                        <span class="text-[11px] font-medium">버스</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="transitType" value="SUBWAY" class="peer sr-only">
+                                    <div class="p-2 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center space-y-1 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950 peer-checked:border-indigo-500 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 transition text-center shadow-2xs">
+                                        <i class="fa-solid fa-train-subway text-sm"></i>
+                                        <span class="text-[11px] font-medium">지하철</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="transitType" value="MIX" class="peer sr-only">
+                                    <div class="p-2 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center space-y-1 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950 peer-checked:border-indigo-500 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 transition text-center shadow-2xs">
+                                        <i class="fa-solid fa-shuffle text-sm"></i>
+                                        <span class="text-[11px] font-medium">환승/복합</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="transitType" value="OTHER" class="peer sr-only">
+                                    <div class="p-2 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center space-y-1 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-950 peer-checked:border-indigo-500 peer-checked:text-indigo-700 dark:peer-checked:text-indigo-300 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 transition text-center shadow-2xs">
+                                        <i class="fa-solid fa-bicycle text-sm"></i>
+                                        <span class="text-[11px] font-medium">자전거/도보</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 3. 편도 총 소요시간 (분) & 도보 시간 (분) 2열 배치 -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="inputOneWayMinutes" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">편도 총 시간 (분) *</label>
+                                <div class="relative">
+                                    <input type="number" id="inputOneWayMinutes" min="1" step="1" placeholder="예: 45"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition pr-9">
+                                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">분</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="inputWalkMinutes" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">편도 도보 시간 (분) *</label>
+                                <div class="relative">
+                                    <input type="number" id="inputWalkMinutes" min="0" step="1" value="10" placeholder="예: 10"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition pr-9">
+                                    <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-medium">분</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="timeErrorMsg" class="hidden text-xs text-rose-500 font-medium -mt-2 flex items-center space-x-1">
+                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                            <span>1분 이상의 올바른 편도 시간을 입력해 주세요.</span>
+                        </p>
+                        <p id="walkErrorMsg" class="hidden text-xs text-rose-500 font-medium -mt-2 flex items-center space-x-1">
+                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                            <span>0분 이상의 올바른 도보 시간을 입력해 주세요.</span>
+                        </p>
+
+                        <!-- 4. 편도 비용 (원) -->
+                        <div>
+                            <label for="inputOneWayCost" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">편도 비용 (원) *</label>
+                            <div class="relative">
+                                <input type="number" id="inputOneWayCost" min="0" step="50" placeholder="예: 1500 (자전거·도보는 0 입력)"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition pr-10">
+                                <span class="absolute right-3.5 top-2.5 text-xs text-slate-400 font-medium">원</span>
+                            </div>
+                            <p id="costErrorMsg" class="hidden text-xs text-rose-500 font-medium mt-1.5 flex items-center space-x-1">
+                                <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                <span>0원 이상의 올바른 금액을 입력해 주세요 (빈칸 또는 음수 불가).</span>
+                            </p>
+                            <!-- Cost Quick Chips -->
+                            <div class="flex items-center space-x-1.5 mt-2 overflow-x-auto pb-0.5">
+                                <button type="button" onclick="setCostValue(0)" class="text-[11px] bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded-lg font-medium transition shrink-0">0원(도보/자전거)</button>
+                                <button type="button" onclick="setCostValue(1400)" class="text-[11px] bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded-lg font-medium transition shrink-0">1,400원(시내)</button>
+                                <button type="button" onclick="setCostValue(1500)" class="text-[11px] bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded-lg font-medium transition shrink-0">1,500원(지하철)</button>
+                                <button type="button" onclick="setCostValue(2900)" class="text-[11px] bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 px-2.5 py-1 rounded-lg font-medium transition shrink-0">2,900원(광역)</button>
+                            </div>
+                        </div>
+
+                        <!-- 5. 갈아타는 횟수 (환승) -->
+                        <div>
+                            <label for="inputTransfers" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">갈아타는 횟수 (환승) *</label>
+                            <div class="relative">
+                                <input type="number" id="inputTransfers" min="0" max="10" step="1" value="0"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition pr-10">
+                                <span class="absolute right-3.5 top-2.5 text-xs text-slate-400 font-medium">회</span>
+                            </div>
+                        </div>
+
+                        <!-- 6. 7단계: 예상 통학 피로도 (1~5단계 이모지 선택) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-200">예상 통학 피로도 (1~5단계) *</label>
+                                <span id="fatigueLevelDesc" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">Lv.2 보통 (무난한 입석)</span>
+                            </div>
+                            <input type="hidden" id="inputFatigue" value="2">
+                            <div class="grid grid-cols-5 gap-1.5">
+                                <button type="button" onclick="selectFatigueLevel(1)" data-fatigue="1" class="fatigue-btn p-2 rounded-xl border text-center transition flex flex-col items-center space-y-0.5">
+                                    <span class="text-base">😊</span>
+                                    <span class="text-[10px] font-bold">1.쾌적</span>
+                                </button>
+                                <button type="button" onclick="selectFatigueLevel(2)" data-fatigue="2" class="fatigue-btn p-2 rounded-xl border text-center transition flex flex-col items-center space-y-0.5">
+                                    <span class="text-base">🙂</span>
+                                    <span class="text-[10px] font-bold">2.보통</span>
+                                </button>
+                                <button type="button" onclick="selectFatigueLevel(3)" data-fatigue="3" class="fatigue-btn p-2 rounded-xl border text-center transition flex flex-col items-center space-y-0.5">
+                                    <span class="text-base">😐</span>
+                                    <span class="text-[10px] font-bold">3.약간혼잡</span>
+                                </button>
+                                <button type="button" onclick="selectFatigueLevel(4)" data-fatigue="4" class="fatigue-btn p-2 rounded-xl border text-center transition flex flex-col items-center space-y-0.5">
+                                    <span class="text-base">😫</span>
+                                    <span class="text-[10px] font-bold">4.혼잡</span>
+                                </button>
+                                <button type="button" onclick="selectFatigueLevel(5)" data-fatigue="5" class="fatigue-btn p-2 rounded-xl border text-center transition flex flex-col items-center space-y-0.5">
+                                    <span class="text-base">🥵</span>
+                                    <span class="text-[10px] font-bold">5.지옥철</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="btnSubmitRoute"
+                            class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition mt-2 flex items-center justify-center space-x-2">
+                            <i id="btnSubmitIcon" class="fa-solid fa-plus"></i>
+                            <span id="btnSubmitText">통학 방법에 추가하기</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Info Guide Card -->
+                <div class="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 rounded-2xl p-4 text-xs text-indigo-950 dark:text-indigo-200 space-y-1">
+                    <p class="font-bold flex items-center text-indigo-700 dark:text-indigo-300"><i class="fa-regular fa-lightbulb mr-1.5"></i> 신입생 통학 길잡이 팁</p>
+                    <p class="text-indigo-800 dark:text-indigo-300 leading-relaxed break-keep">
+                        배차 간격이 길거나 만차로 지나치는 광역버스, 출근길 9호선·2호선 등은 피로도를 4~5단계로 설정해 보세요. 내 성향과 날씨에 맞춰 가장 현실적인 추천 점수를 계산해 드립니다!
+                    </p>
+                </div>
+            </section>
+
+            <!-- SCREEN 3: 스마트 분석 리포트 (화면 3 - 시급 환산 & Chart.js 시각화) -->
+            <section id="viewAnalytics" class="space-y-4 hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-4 sm:p-5 shadow-xs space-y-4 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-violet-600"></span>
+                                <h2 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">통학 스마트 분석 리포트</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                등교 <span id="analyticsDaysLabel" class="font-bold text-indigo-600 dark:text-indigo-400">20일</span> · <span id="analyticsPassLabel" class="font-bold text-emerald-600 dark:text-emerald-400">패스 미적용</span> 기준
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 1:1 Head-to-Head Compare & 6단계 시급 환산 기회비용 배너 -->
+                    <div class="bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 rounded-2xl p-4 text-white shadow-sm space-y-3 border border-indigo-800/50">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span class="text-xs font-bold text-indigo-200 flex items-center">
+                                <i class="fa-solid fa-scale-balanced mr-1.5 text-amber-300"></i> 시간 1위 vs 비용 1위 맞대결 & 시급 환산
+                            </span>
+                            <span class="text-[10px] bg-white/15 px-2 py-0.5 rounded-full text-indigo-100">최저시급 10,030원 기준</span>
+                        </div>
+
+                        <div id="analyticsComparisonContent" class="space-y-2.5 text-xs">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- 9단계 차트 1: 한 달 비용 vs 시간 비교 이중 축 막대차트 -->
+                    <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 flex items-center">
+                                <i class="fa-solid fa-chart-column text-indigo-500 mr-1.5"></i>경로별 월 소요시간(h) vs 실교통비(만원)
+                            </h3>
+                            <span class="text-[10px] text-slate-400">이중 축 비교</span>
+                        </div>
+                        <div class="relative w-full h-56">
+                            <canvas id="barChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 9단계 차트 2: TOP 3 경로 오각형 밸런스 방사형 차트 (Radar Chart) -->
+                    <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 flex items-center">
+                                <i class="fa-solid fa-chart-pie text-violet-500 mr-1.5"></i>TOP 3 추천 경로 오각형 밸런스 비교
+                            </h3>
+                            <span class="text-[10px] text-slate-400">점수가 높을수록 우수</span>
+                        </div>
+                        <div class="relative w-full h-64 flex items-center justify-center">
+                            <canvas id="radarChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Aggregate Statistics Grid -->
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">등록된 경로 평균 통계</h3>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-xl p-2.5">
+                                <span class="text-[10px] text-slate-400 block font-medium">평균 편도 시간</span>
+                                <span id="statAvgMinutes" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 block">-</span>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-xl p-2.5">
+                                <span class="text-[10px] text-slate-400 block font-medium">평균 월 실교통비</span>
+                                <span id="statAvgCost" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 block break-keep">-</span>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 rounded-xl p-2.5">
+                                <span class="text-[10px] text-slate-400 block font-medium">평균 통학 피로도</span>
+                                <span id="statAvgFatigue" class="text-xs sm:text-sm font-extrabold text-indigo-600 dark:text-indigo-400 mt-0.5 block">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Fixed Bottom Tab Navigation (3 Tabs) -->
+        <nav class="fixed bottom-0 max-w-md w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 py-1.5 z-40 grid grid-cols-3 transition-colors">
+            <button onclick="switchTab('comparison')" id="navComparison" class="flex flex-col items-center text-indigo-600 dark:text-indigo-400 transition group py-1">
+                <i class="fa-solid fa-chart-simple text-base mb-0.5"></i>
+                <span class="text-[11px] font-bold">비교 홈</span>
+            </button>
+            <button onclick="switchTab('add')" id="navAdd" class="flex flex-col items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition group py-1">
+                <i class="fa-solid fa-circle-plus text-base mb-0.5"></i>
+                <span id="navAddLabel" class="text-[11px] font-medium">방법 추가</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="navAnalytics" class="flex flex-col items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition group py-1">
+                <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
+                <span class="text-[11px] font-medium">스마트 분석</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification Popup (Zero alerts) -->
+        <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-900/95 dark:bg-slate-100/95 backdrop-blur text-white dark:text-slate-900 px-4 py-2.5 rounded-xl text-xs font-semibold opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center shadow-lg max-w-xs text-center">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600 mr-2 text-sm shrink-0"></i>
+            <span id="toastMsg" class="break-keep">알림 메시지</span>
+        </div>
+
+        <!-- Custom Delete Modal (Zero confirm) -->
+        <div id="deleteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xs w-full p-5 shadow-2xl border border-slate-100 dark:border-slate-700 text-center space-y-3">
+                <div class="w-11 h-11 bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto">
+                    <i class="fa-solid fa-trash-can text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">통학 방법을 삭제하시겠습니까?</h3>
+                    <p id="deleteModalTargetDesc" class="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">항목 설명</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button type="button" onclick="closeDeleteModal()" class="py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition">
+                        취소
+                    </button>
+                    <button type="button" id="btnConfirmDelete" class="py-2.5 text-xs font-bold text-white bg-rose-600 rounded-xl hover:bg-rose-700 transition">
+                        삭제하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10단계: 데이터 관리 (백업/공유/불러오기) 모달 -->
+        <div id="dataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                            <i class="fa-solid fa-share-nodes text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">데이터 백업 및 공유</h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">내 통학 루트를 복사하거나 불러옵니다</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeDataModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- 내보내기 섹션 -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-200">1. 내보내기 (클립보드 복사)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="exportRoutesSummaryText()" class="py-2.5 px-3 bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-regular fa-file-lines"></i>
+                            <span>요약 텍스트 복사</span>
+                        </button>
+                        <button type="button" onclick="exportRoutesJson()" class="py-2.5 px-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5">
+                            <i class="fa-solid fa-code"></i>
+                            <span>백업 JSON 복사</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 불러오기 섹션 -->
+                <div class="space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+                    <label for="importJsonTextarea" class="block text-xs font-bold text-slate-700 dark:text-slate-200">2. JSON 데이터 불러오기</label>
+                    <textarea id="importJsonTextarea" rows="4" placeholder='복사한 백업 JSON 문자열을 여기에 붙여넣으세요... 예: [{"name":"지하철 1호선", ...}]'
+                        class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <p id="importErrorMsg" class="hidden text-[11px] text-rose-500 font-semibold"></p>
+                    <button type="button" onclick="importRoutesJson()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        JSON 데이터 적용하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const STORAGE_KEY_ROUTES = 'COMMUTE_PRO_ROUTES_V2';
+        const STORAGE_KEY_DAYS = 'COMMUTE_PRO_DAYS_V2';
+        const STORAGE_KEY_PASS = 'COMMUTE_PRO_PASS_V2';
+        const STORAGE_KEY_PERSONA = 'COMMUTE_PRO_PERSONA_V2';
+        const STORAGE_KEY_THEME = 'COMMUTE_PRO_THEME_V2';
+
+        const MINIMUM_WAGE_KRW = 10030; // 2025/2026 최저시급 기준 시급 환산용
+
+        const FATIGUE_META = {
+            1: { emoji: '😊', label: '쾌적', desc: 'Lv.1 쾌적 (착석 가능·여유)', badgeClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' },
+            2: { emoji: '🙂', label: '보통', desc: 'Lv.2 보통 (무난한 입석)', badgeClass: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' },
+            3: { emoji: '😐', label: '약간혼잡', desc: 'Lv.3 약간혼잡 (어깨 닿음)', badgeClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' },
+            4: { emoji: '😫', label: '혼잡', desc: 'Lv.4 혼잡 (출퇴근 만원)', badgeClass: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300' },
+            5: { emoji: '🥵', label: '지옥철', desc: 'Lv.5 지옥철/만차 (체력 방전)', badgeClass: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300' }
+        };
+
+        // 7단계: 도보 시간(walkMinutes)과 피로도(fatigue 1~5)가 포함된 5개 초기 가상 데이터
+        const DEFAULT_ROUTES = [
+            {
+                id: 'route_101',
+                name: '지하철 1호선 직통',
+                type: 'SUBWAY',
+                oneWayMinutes: 38,
+                oneWayCost: 1500,
+                transfers: 0,
+                walkMinutes: 10,
+                fatigue: 3
+            },
+            {
+                id: 'route_102',
+                name: '시내버스 52번 + 도보',
+                type: 'BUS',
+                oneWayMinutes: 52,
+                oneWayCost: 1400,
+                transfers: 0,
+                walkMinutes: 18,
+                fatigue: 2
+            },
+            {
+                id: 'route_103',
+                name: '광역급행버스(좌석)',
+                type: 'BUS',
+                oneWayMinutes: 30,
+                oneWayCost: 2900,
+                transfers: 0,
+                walkMinutes: 6,
+                fatigue: 1
+            },
+            {
+                id: 'route_104',
+                name: '마을버스 + 지옥철 환승',
+                type: 'MIX',
+                oneWayMinutes: 42,
+                oneWayCost: 1500,
+                transfers: 1,
+                walkMinutes: 8,
+                fatigue: 5
+            },
+            {
+                id: 'route_105',
+                name: '공공자전거(따릉이) + 지하철',
+                type: 'OTHER',
+                oneWayMinutes: 34,
+                oneWayCost: 1500,
+                transfers: 1,
+                walkMinutes: 16,
+                fatigue: 2
+            }
+        ];
+
+        let routes = [];
+        let schoolDays = 20;
+        let passType = 'KPASS'; // 'NONE' | 'KPASS' | 'CLIMATE'
+        let personaMode = 'TIME_FIRST'; // 'TIME_FIRST' | 'COST_FIRST' | 'COMFORT_FIRST'
+        let isRainy = false;
+        let currentSort = 'SCORE'; // 'SCORE' | 'TIME' | 'COST' | 'FATIGUE' | 'TRANSFERS'
+        let editingRouteId = null;
+        let pendingDeleteId = null;
+
+        // Chart.js instances for safe destruction
+        let barChartInstance = null;
+        let radarChartInstance = null;
+
+        function initApp() {
+            // Restore Theme
+            try {
+                const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                updateThemeIcon();
+            } catch (e) {
+                console.warn('Theme load error:', e);
+            }
+
+            // Restore School Days
+            try {
+                const savedDays = localStorage.getItem(STORAGE_KEY_DAYS);
+                if (savedDays !== null) {
+                    const parsedDays = parseInt(savedDays, 10);
+                    if (!isNaN(parsedDays) && parsedDays >= 1 && parsedDays <= 31) {
+                        schoolDays = parsedDays;
+                    }
+                }
+            } catch (e) {}
+
+            // Restore Pass Type
+            try {
+                const savedPass = localStorage.getItem(STORAGE_KEY_PASS);
+                if (['NONE', 'KPASS', 'CLIMATE'].includes(savedPass)) {
+                    passType = savedPass;
+                }
+            } catch (e) {}
+
+            // Restore Persona Mode
+            try {
+                const savedPersona = localStorage.getItem(STORAGE_KEY_PERSONA);
+                if (['TIME_FIRST', 'COST_FIRST', 'COMFORT_FIRST'].includes(savedPersona)) {
+                    personaMode = savedPersona;
+                }
+            } catch (e) {}
+
+            // Restore Routes
+            try {
+                const savedRoutes = localStorage.getItem(STORAGE_KEY_ROUTES);
+                if (savedRoutes !== null) {
+                    const parsed = JSON.parse(savedRoutes);
+                    if (Array.isArray(parsed)) {
+                        routes = parsed.map(r => ({
+                            ...r,
+                            walkMinutes: typeof r.walkMinutes === 'number' ? r.walkMinutes : 10,
+                            fatigue: typeof r.fatigue === 'number' ? r.fatigue : 2
+                        }));
+                    } else {
+                        routes = JSON.parse(JSON.stringify(DEFAULT_ROUTES));
+                    }
+                } else {
+                    routes = JSON.parse(JSON.stringify(DEFAULT_ROUTES));
+                    saveRoutesToStorage();
+                }
+            } catch (e) {
+                routes = JSON.parse(JSON.stringify(DEFAULT_ROUTES));
+            }
+
+            document.getElementById('displaySchoolDays').textContent = schoolDays;
+            setupSortTabs();
+            selectFatigueLevel(2);
+
+            document.getElementById('btnResetDefaults').addEventListener('click', () => {
+                routes = JSON.parse(JSON.stringify(DEFAULT_ROUTES));
+                schoolDays = 20;
+                passType = 'KPASS';
+                personaMode = 'TIME_FIRST';
+                isRainy = false;
+                cancelEditRoute(false);
+                saveAllState();
+                document.getElementById('displaySchoolDays').textContent = schoolDays;
+                updateUI();
+                showToast('기본 가상 데이터 5건 및 초기 설정으로 복원되었습니다.');
+            });
+
+            updateUI();
+        }
+
+        function saveRoutesToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
+            } catch (e) {}
+        }
+
+        function saveAllState() {
+            saveRoutesToStorage();
+            try {
+                localStorage.setItem(STORAGE_KEY_DAYS, schoolDays.toString());
+                localStorage.setItem(STORAGE_KEY_PASS, passType);
+                localStorage.setItem(STORAGE_KEY_PERSONA, personaMode);
+            } catch (e) {}
+        }
+
+        function toggleTheme() {
+            const htmlEl = document.documentElement;
+            const isDark = htmlEl.classList.toggle('dark');
+            try {
+                localStorage.setItem(STORAGE_KEY_THEME, isDark ? 'dark' : 'light');
+            } catch (e) {}
+            updateThemeIcon();
+            // Redraw charts with updated theme colors if analytics tab is visible
+            if (!document.getElementById('viewAnalytics').classList.contains('hidden')) {
+                renderAnalyticsCharts();
+            }
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('themeIcon');
+            if (!icon) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            icon.className = isDark ? 'fa-solid fa-sun text-xs text-amber-300' : 'fa-solid fa-moon text-xs text-slate-600';
+        }
+
+        // 6단계: 교통패스 할인 계산 함수
+        function calculateMonthlyCostInfo(route) {
+            const tripsPerMonth = schoolDays * 2;
+            const rawMonthlyCost = route.oneWayCost * tripsPerMonth;
+            let finalCost = rawMonthlyCost;
+            let discountApplied = false;
+            let badgeNote = '';
+
+            if (rawMonthlyCost === 0) {
+                return { rawMonthlyCost: 0, finalCost: 0, discountApplied: false, badgeNote: '무료 통학' };
+            }
+
+            if (passType === 'KPASS') {
+                if (tripsPerMonth >= 15) {
+                    finalCost = Math.round(rawMonthlyCost * 0.7);
+                    discountApplied = true;
+                    badgeNote = 'K-패스 청년 30% 환급';
+                } else {
+                    badgeNote = '월 15회 미만 (할인 미적용)';
+                }
+            } else if (passType === 'CLIMATE') {
+                // 광역버스(편도 2,000원 이상으로 가정)는 기후동행카드 제외
+                if (route.oneWayCost >= 2000) {
+                    badgeNote = '광역요금 기후동행 제외';
+                } else {
+                    if (rawMonthlyCost > 55000) {
+                        finalCost = 55000;
+                        discountApplied = true;
+                        badgeNote = '기후동행 5.5만 상한 적용';
+                    } else {
+                        badgeNote = '5.5만 이하 (일반결제 유리)';
+                    }
+                }
+            }
+
+            return { rawMonthlyCost, finalCost, discountApplied, badgeNote };
+        }
+
+        // 8단계: 날씨 시뮬레이터가 반영된 실효 피로도 계산
+        function getEffectiveFatigue(route) {
+            let eff = route.fatigue || 2;
+            const weatherPenaltyApplied = isRainy && (route.type === 'OTHER' || (route.walkMinutes || 0) >= 15);
+            if (weatherPenaltyApplied) {
+                eff = Math.min(5, eff + 2);
+            }
+            return { effectiveFatigue: eff, weatherPenaltyApplied };
+        }
+
+        // 8단계: 정규화(0~100) 및 가중치 기반 종합 추천 점수(Smart Score) 계산
+        function computeEnrichedRoutes() {
+            if (routes.length === 0) return [];
+
+            const times = routes.map(r => r.oneWayMinutes);
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+
+            const costInfos = routes.map(r => calculateMonthlyCostInfo(r));
+            const finalCosts = costInfos.map(c => c.finalCost);
+            const minCost = Math.min(...finalCosts);
+            const maxCost = Math.max(...finalCosts);
+
+            // Weights by Persona
+            let wTime = 0.7, wCost = 0.1, wComfort = 0.2;
+            if (personaMode === 'COST_FIRST') {
+                wTime = 0.2; wCost = 0.7; wComfort = 0.1;
+            } else if (personaMode === 'COMFORT_FIRST') {
+                wTime = 0.2; wCost = 0.1; wComfort = 0.7;
+            }
+
+            return routes.map((r, idx) => {
+                const costInfo = costInfos[idx];
+                const { effectiveFatigue, weatherPenaltyApplied } = getEffectiveFatigue(r);
+
+                // Normalize Time Score (40 ~ 100)
+                const timeScore = maxTime === minTime
+                    ? 100
+                    : 100 - ((r.oneWayMinutes - minTime) / (maxTime - minTime)) * 60;
+
+                // Normalize Cost Score (40 ~ 100)
+                const costScore = maxCost === minCost
+                    ? 100
+                    : 100 - ((costInfo.finalCost - minCost) / (maxCost - minCost)) * 60;
+
+                // Normalize Comfort Score (Fatigue 1~5 + Transfers + Walk time)
+                const fatigueBase = 100 - ((effectiveFatigue - 1) / 4) * 65; // 100 down to 35
+                const transferDeduct = Math.min(25, r.transfers * 10);
+                const walkDeduct = Math.min(15, Math.max(0, (r.walkMinutes - 10) * 0.8));
+                const comfortScore = Math.max(10, fatigueBase - transferDeduct - walkDeduct);
+
+                let rawSmartScore = (timeScore * wTime) + (costScore * wCost) + (comfortScore * wComfort);
+
+                // 비/눈 오는 날 자전거 또는 도보 15분 이상 경로 추가 감점
+                if (weatherPenaltyApplied) {
+                    rawSmartScore -= (r.type === 'OTHER' ? 22 : 14);
+                }
+
+                const smartScore = Math.max(5, Math.min(100, Math.round(rawSmartScore)));
+
+                // Radar chart 5 metrics (0 ~ 100)
+                const radarSpeed = Math.round(timeScore);
+                const radarCheap = Math.round(costScore);
+                const radarTransfer = Math.max(20, 100 - r.transfers * 25);
+                const radarComfort = Math.round(100 - ((effectiveFatigue - 1) / 4) * 80);
+                const radarWalk = Math.max(20, Math.round(100 - Math.min(40, r.walkMinutes) * 2));
+
+                return {
+                    ...r,
+                    costInfo,
+                    effectiveFatigue,
+                    weatherPenaltyApplied,
+                    smartScore,
+                    radarMetrics: [radarSpeed, radarCheap, radarTransfer, radarComfort, radarWalk]
+                };
+            });
+        }
+
+        function togglePreferenceAccordion() {
+            const body = document.getElementById('preferenceAccordionBody');
+            const chevron = document.getElementById('accordionChevron');
+            const isHidden = body.classList.toggle('hidden');
+            chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function setPersonaMode(mode) {
+            personaMode = mode;
+            saveAllState();
+            updateUI();
+        }
+
+        function toggleRainyMode() {
+            isRainy = !isRainy;
+            const btn = document.getElementById('btnRainToggle');
+            const knob = document.getElementById('rainToggleKnob');
+            btn.setAttribute('aria-checked', isRainy ? 'true' : 'false');
+            if (isRainy) {
+                btn.className = 'w-11 h-6 bg-indigo-600 rounded-full relative transition-colors duration-200 focus:outline-none shrink-0';
+                knob.style.transform = 'translateX(20px)';
+                showToast('☔ 비/눈 오는 날 시뮬레이션이 켜졌습니다. 도보·자전거 피로도가 증가합니다.');
+            } else {
+                btn.className = 'w-11 h-6 bg-slate-300 dark:bg-slate-700 rounded-full relative transition-colors duration-200 focus:outline-none shrink-0';
+                knob.style.transform = 'translateX(0px)';
+            }
+            updateUI();
+        }
+
+        function adjustSchoolDays(delta) {
+            const next = schoolDays + delta;
+            if (next >= 1 && next <= 31) {
+                schoolDays = next;
+                document.getElementById('displaySchoolDays').textContent = schoolDays;
+                saveAllState();
+                updateUI();
+            }
+        }
+
+        function setSchoolDays(days) {
+            schoolDays = days;
+            document.getElementById('displaySchoolDays').textContent = schoolDays;
+            saveAllState();
+            updateUI();
+        }
+
+        function setPassType(type) {
+            passType = type;
+            saveAllState();
+            updateUI();
+        }
+
+        function switchTab(target) {
+            const viewComparison = document.getElementById('viewComparison');
+            const viewAddRoute = document.getElementById('viewAddRoute');
+            const viewAnalytics = document.getElementById('viewAnalytics');
+            const navComparison = document.getElementById('navComparison');
+            const navAdd = document.getElementById('navAdd');
+            const navAnalytics = document.getElementById('navAnalytics');
+
+            viewComparison.classList.add('hidden');
+            viewAddRoute.classList.add('hidden');
+            viewAnalytics.classList.add('hidden');
+
+            const resetTab = (btn) => {
+                btn.className = 'flex flex-col items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition group py-1';
+                btn.querySelector('span').className = 'text-[11px] font-medium';
+            };
+            const setActiveTab = (btn) => {
+                btn.className = 'flex flex-col items-center text-indigo-600 dark:text-indigo-400 transition group py-1';
+                btn.querySelector('span').className = 'text-[11px] font-bold';
+            };
+
+            resetTab(navComparison);
+            resetTab(navAdd);
+            resetTab(navAnalytics);
+
+            if (target === 'comparison') {
+                viewComparison.classList.remove('hidden');
+                setActiveTab(navComparison);
+            } else if (target === 'add') {
+                viewAddRoute.classList.remove('hidden');
+                setActiveTab(navAdd);
+            } else if (target === 'analytics') {
+                viewAnalytics.classList.remove('hidden');
+                setActiveTab(navAnalytics);
+                renderAnalyticsView();
+                // Ensure canvas dimensions are ready before rendering Chart.js
+                setTimeout(() => renderAnalyticsCharts(), 30);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setupSortTabs() {
+            const sortTabs = document.querySelectorAll('.sort-tab');
+            sortTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentSort = tab.getAttribute('data-sort');
+                    sortTabs.forEach(t => {
+                        t.classList.remove('bg-white', 'dark:bg-slate-700', 'text-indigo-600', 'dark:text-indigo-300', 'shadow-xs', 'font-bold');
+                        t.classList.add('text-slate-600', 'dark:text-slate-400');
+                    });
+                    tab.classList.add('bg-white', 'dark:bg-slate-700', 'text-indigo-600', 'dark:text-indigo-300', 'shadow-xs', 'font-bold');
+                    tab.classList.remove('text-slate-600', 'dark:text-slate-400');
+                    renderRouteList();
+                });
+            });
+        }
+
+        function formatMinutes(totalMinutes) {
+            if (totalMinutes < 60) {
+                return `${totalMinutes}분`;
+            }
+            const hours = Math.floor(totalMinutes / 60);
+            const remainingMinutes = totalMinutes % 60;
+            return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
+        }
+
+        function updateUI() {
+            // Update Persona Buttons
+            const personaNames = {
+                'TIME_FIRST': '프로 지각러 모드',
+                'COST_FIRST': '짠테크 모드',
+                'COMFORT_FIRST': '체력 보존 모드'
+            };
+            document.getElementById('activePreferenceSummary').textContent =
+                `${personaNames[personaMode]} · ${isRainy ? '비/눈 ☔ (도보·자전거 감점)' : '맑음 ☀️'}`;
+
+            document.querySelectorAll('.persona-btn').forEach(btn => {
+                const p = btn.getAttribute('data-persona');
+                if (p === personaMode) {
+                    btn.className = 'persona-btn p-2 rounded-xl border-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/60 text-left transition flex flex-col justify-between shadow-2xs';
+                } else {
+                    btn.className = 'persona-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 text-left transition flex flex-col justify-between';
+                }
+            });
+
+            // Update Pass Buttons & Hint
+            const trips = schoolDays * 2;
+            const passHint = document.getElementById('passStatusHint');
+            if (passType === 'NONE') {
+                passHint.textContent = `월 총 ${trips}회 탑승 (일반 요금)`;
+            } else if (passType === 'KPASS') {
+                passHint.textContent = trips >= 15
+                    ? `월 ${trips}회 탑승 (15회↑ 30% 환급 적용 중)`
+                    : `월 ${trips}회 탑승 (15회 미만으로 환급 미적용)`;
+            } else if (passType === 'CLIMATE') {
+                passHint.textContent = '시내버스·지하철 월 55,000원 상한 적용';
+            }
+
+            document.querySelectorAll('.pass-btn').forEach(btn => {
+                const p = btn.getAttribute('data-pass');
+                if (p === passType) {
+                    btn.className = 'pass-btn py-2 px-2 rounded-xl border-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 text-center transition flex flex-col items-center justify-center shadow-2xs';
+                } else {
+                    btn.className = 'pass-btn py-2 px-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 text-center transition flex flex-col items-center justify-center';
+                }
+            });
+
+            const enriched = computeEnrichedRoutes();
+            document.getElementById('routeCountBadge').textContent = `${enriched.length}개`;
+
+            if (enriched.length === 0) {
+                document.getElementById('bestTimeName').textContent = '데이터 없음';
+                document.getElementById('bestTimeVal').textContent = '-';
+                document.getElementById('bestCostName').textContent = '데이터 없음';
+                document.getElementById('bestCostVal').textContent = '-';
+            } else {
+                const fastest = [...enriched].sort((a, b) => a.oneWayMinutes - b.oneWayMinutes)[0];
+                document.getElementById('bestTimeName').textContent = fastest.name;
+                document.getElementById('bestTimeVal').textContent = `편도 ${fastest.oneWayMinutes}분`;
+
+                const cheapest = [...enriched].sort((a, b) => a.costInfo.finalCost - b.costInfo.finalCost)[0];
+                document.getElementById('bestCostName').textContent = cheapest.name;
+                document.getElementById('bestCostVal').textContent = `${cheapest.costInfo.finalCost.toLocaleString()}원`;
+            }
+
+            renderRouteList();
+            renderAnalyticsView();
+            if (!document.getElementById('viewAnalytics').classList.contains('hidden')) {
+                renderAnalyticsCharts();
+            }
+        }
+
+        function renderRouteList() {
+            const container = document.getElementById('routeListContainer');
+            const emptyState = document.getElementById('emptyRoutesState');
+            container.innerHTML = '';
+
+            const enriched = computeEnrichedRoutes();
+
+            if (enriched.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            const fastestId = [...enriched].sort((a, b) => a.oneWayMinutes - b.oneWayMinutes)[0]?.id;
+            const cheapestId = [...enriched].sort((a, b) => a.costInfo.finalCost - b.costInfo.finalCost)[0]?.id;
+            const bestScoreId = [...enriched].sort((a, b) => b.smartScore - a.smartScore)[0]?.id;
+
+            const sorted = [...enriched].sort((a, b) => {
+                if (currentSort === 'SCORE') {
+                    return b.smartScore - a.smartScore;
+                } else if (currentSort === 'TIME') {
+                    return a.oneWayMinutes - b.oneWayMinutes;
+                } else if (currentSort === 'COST') {
+                    return a.costInfo.finalCost - b.costInfo.finalCost;
+                } else if (currentSort === 'FATIGUE') {
+                    if (a.effectiveFatigue !== b.effectiveFatigue) {
+                        return a.effectiveFatigue - b.effectiveFatigue;
+                    }
+                    return a.walkMinutes - b.walkMinutes;
+                } else if (currentSort === 'TRANSFERS') {
+                    if (a.transfers !== b.transfers) {
+                        return a.transfers - b.transfers;
+                    }
+                    return a.oneWayMinutes - b.oneWayMinutes;
+                }
+                return 0;
+            });
+
+            sorted.forEach((item, index) => {
+                const monthlyTotalMinutes = item.oneWayMinutes * 2 * schoolDays;
+                const { rawMonthlyCost, finalCost, discountApplied, badgeNote } = item.costInfo;
+
+                const isFastest = item.id === fastestId;
+                const isCheapest = item.id === cheapestId;
+                const isBestScore = item.id === bestScoreId;
+
+                let iconClass = 'fa-bus';
+                let iconBg = 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-300';
+                if (item.type === 'SUBWAY') {
+                    iconClass = 'fa-train-subway';
+                    iconBg = 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300';
+                } else if (item.type === 'MIX') {
+                    iconClass = 'fa-shuffle';
+                    iconBg = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300';
+                } else if (item.type === 'OTHER') {
+                    iconClass = 'fa-bicycle';
+                    iconBg = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+                }
+
+                const fMeta = FATIGUE_META[item.effectiveFatigue] || FATIGUE_META[2];
+
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 p-3.5 sm:p-4 shadow-xs hover:border-indigo-300 dark:hover:border-indigo-600 transition space-y-3';
+
+                card.innerHTML = `
+                    <!-- Card Header: Rank, Type Icon, Name, Smart Score, and Edit/Delete Buttons -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-start space-x-2.5 min-w-0 flex-1">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${iconBg}">
+                                <i class="fa-solid ${iconClass} text-sm"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center flex-wrap gap-1">
+                                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                        #${index + 1}
+                                    </span>
+                                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isBestScore ? 'bg-violet-600 text-white' : 'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300'} flex items-center">
+                                        <i class="fa-solid fa-star text-[8px] mr-1"></i>추천 ${item.smartScore}점
+                                    </span>
+                                    ${isFastest ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300"><i class="fa-solid fa-bolt text-[9px] mr-0.5"></i>시간 1위</span>` : ''}
+                                    ${isCheapest ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"><i class="fa-solid fa-won-sign text-[9px] mr-0.5"></i>비용 1위</span>` : ''}
+                                </div>
+                                <h3 class="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base mt-1 break-keep leading-tight">
+                                    ${escapeHtml(item.name)}
+                                </h3>
+                            </div>
+                        </div>
+
+                        <!-- 7단계: 수정(연필) & 삭제(휴지통) 버튼 -->
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <button onclick="startEditRoute('${item.id}')" 
+                                class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 active:scale-95 rounded-xl transition" 
+                                aria-label="이 통학 방법 수정"
+                                title="수정하기">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button onclick="promptDeleteRoute('${item.id}', '${escapeHtml(item.name)}')" 
+                                class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-700 active:scale-95 rounded-xl transition" 
+                                aria-label="이 통학 방법 삭제"
+                                title="삭제하기">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 7단계 & 8단계: 피로도 배지, 도보 시간, 날씨 페널티 표시 -->
+                    <div class="flex items-center flex-wrap gap-1.5 text-[11px]">
+                        <span class="px-2 py-0.5 rounded-lg font-bold ${fMeta.badgeClass} flex items-center space-x-1">
+                            <span>${fMeta.emoji}</span>
+                            <span>피로도 Lv.${item.effectiveFatigue} (${fMeta.label})</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-lg font-semibold bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 flex items-center space-x-1">
+                            <i class="fa-solid fa-person-walking text-[10px] text-slate-400"></i>
+                            <span>도보 ${item.walkMinutes}분</span>
+                        </span>
+                        ${item.weatherPenaltyApplied ? `
+                            <span class="px-2 py-0.5 rounded-lg font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 flex items-center space-x-1">
+                                <span>☔ 우천 시 취약</span>
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <!-- Single Trip Specs -->
+                    <div class="grid grid-cols-3 gap-1.5 bg-slate-50/90 dark:bg-slate-900/60 p-2 sm:p-2.5 rounded-xl text-center border border-slate-100 dark:border-slate-700/60">
+                        <div class="px-1">
+                            <span class="block text-[10px] text-slate-400 font-medium">편도 시간</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">${item.oneWayMinutes}분</span>
+                        </div>
+                        <div class="border-x border-slate-200 dark:border-slate-700 px-1">
+                            <span class="block text-[10px] text-slate-400 font-medium">편도 기본요금</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 break-keep">${Number(item.oneWayCost).toLocaleString()}원</span>
+                        </div>
+                        <div class="px-1">
+                            <span class="block text-[10px] text-slate-400 font-medium">환승</span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">${item.transfers === 0 ? '직통(0회)' : item.transfers + '회'}</span>
+                        </div>
+                    </div>
+
+                    <!-- 6단계: 한 달 총 소요시간 & 교통패스 할인 반영 총 교통비 (취소선 포함) -->
+                    <div class="bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl p-2.5 sm:p-3 border border-indigo-100/90 dark:border-indigo-900/70 flex flex-wrap items-center justify-between gap-2">
+                        <div class="min-w-[115px]">
+                            <span class="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300 block break-keep">한 달 총 시간 (왕복 ${schoolDays}일)</span>
+                            <span class="text-xs sm:text-sm font-black text-indigo-950 dark:text-white">${formatMinutes(monthlyTotalMinutes)}</span>
+                        </div>
+                        <div class="text-right ml-auto">
+                            <div class="flex items-center justify-end space-x-1">
+                                ${badgeNote ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800">${badgeNote}</span>` : ''}
+                                <span class="text-[10px] font-semibold text-indigo-700 dark:text-indigo-300">한 달 실교통비</span>
+                            </div>
+                            <div class="flex items-baseline justify-end space-x-1.5 mt-0.5">
+                                ${discountApplied ? `<span class="text-[11px] text-slate-400 line-through font-medium">${rawMonthlyCost.toLocaleString()}원</span>` : ''}
+                                <span class="text-xs sm:text-sm font-black ${discountApplied ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-700 dark:text-indigo-300'}">${finalCost.toLocaleString()}원</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAnalyticsView() {
+            const daysLabel = document.getElementById('analyticsDaysLabel');
+            const passLabel = document.getElementById('analyticsPassLabel');
+            if (daysLabel) daysLabel.textContent = `${schoolDays}일`;
+
+            const passNames = { 'NONE': '패스 미적용', 'KPASS': 'K-패스 청년 30%', 'CLIMATE': '기후동행 청년권' };
+            if (passLabel) passLabel.textContent = passNames[passType] || '패스 미적용';
+
+            const compContainer = document.getElementById('analyticsComparisonContent');
+            const statAvgMin = document.getElementById('statAvgMinutes');
+            const statAvgCost = document.getElementById('statAvgCost');
+            const statAvgFatigue = document.getElementById('statAvgFatigue');
+
+            const enriched = computeEnrichedRoutes();
+
+            if (enriched.length === 0) {
+                compContainer.innerHTML = '<p class="text-slate-300 text-center py-3">분석할 통학 데이터가 없습니다.</p>';
+                statAvgMin.textContent = '-';
+                statAvgCost.textContent = '-';
+                statAvgFatigue.textContent = '-';
+                return;
+            }
+
+            const fastest = [...enriched].sort((a, b) => a.oneWayMinutes - b.oneWayMinutes)[0];
+            const cheapest = [...enriched].sort((a, b) => a.costInfo.finalCost - b.costInfo.finalCost)[0];
+
+            const fastestMonthlyMin = fastest.oneWayMinutes * 2 * schoolDays;
+            const cheapestMonthlyMin = cheapest.oneWayMinutes * 2 * schoolDays;
+
+            const fastestMonthlyCost = fastest.costInfo.finalCost;
+            const cheapestMonthlyCost = cheapest.costInfo.finalCost;
+
+            const savedMinutes = Math.max(0, cheapestMonthlyMin - fastestMonthlyMin);
+            const extraCostForFastest = Math.max(0, fastestMonthlyCost - cheapestMonthlyCost);
+
+            // 6단계: 최저시급(10,030원) 기준 시간의 화폐 가치(기회비용) 계산
+            const savedHoursFloat = savedMinutes / 60;
+            const timeMonetaryValue = Math.round(savedHoursFloat * MINIMUM_WAGE_KRW);
+            const netBenefit = timeMonetaryValue - extraCostForFastest;
+
+            let opportunityComment = '';
+            if (fastest.id === cheapest.id) {
+                opportunityComment = `🎉 <strong>${escapeHtml(fastest.name)}</strong> 경로가 시간과 비용 모두 1위입니다! 고민 없이 이 경로를 선택하세요.`;
+            } else if (netBenefit >= 0) {
+                opportunityComment = `💰 <strong>시간을 돈으로 산다면 이득!</strong> 가장 빠른 경로로 아낀 한 달 시간(<strong>${formatMinutes(savedMinutes)}</strong>)을 최저시급으로 환산하면 약 <strong>${timeMonetaryValue.toLocaleString()}원</strong>의 가치가 있습니다. 추가 교통비(${extraCostForFastest.toLocaleString()}원)보다 시간 가치가 <strong>${netBenefit.toLocaleString()}원 더 높으므로</strong> 빠른 경로를 적극 추천합니다.`;
+            } else {
+                opportunityComment = `⚖️ <strong>가성비(비용 절약) 우세!</strong> 빠른 경로로 아끼는 시간의 시급 환산 가치(약 <strong>${timeMonetaryValue.toLocaleString()}원</strong>)보다 추가 교통비 부담(<strong>${extraCostForFastest.toLocaleString()}원</strong>)이 더 큽니다. 여유 있는 날엔 저렴한 경로로 생활비를 아껴보세요.`;
+            }
+
+            compContainer.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 text-center bg-white/10 p-2.5 rounded-xl">
+                    <div class="border-r border-white/10 pr-2">
+                        <span class="text-[10px] text-amber-300 font-bold block">⚡ 시간 1위 경로</span>
+                        <p class="font-bold text-xs truncate mt-0.5">${escapeHtml(fastest.name)}</p>
+                        <p class="text-[11px] text-slate-200 mt-1">${formatMinutes(fastestMonthlyMin)} / ${fastestMonthlyCost.toLocaleString()}원</p>
+                    </div>
+                    <div class="pl-2">
+                        <span class="text-[10px] text-emerald-300 font-bold block">🐷 비용 1위 경로</span>
+                        <p class="font-bold text-xs truncate mt-0.5">${escapeHtml(cheapest.name)}</p>
+                        <p class="text-[11px] text-slate-200 mt-1">${formatMinutes(cheapestMonthlyMin)} / ${cheapestMonthlyCost.toLocaleString()}원</p>
+                    </div>
+                </div>
+                <div class="bg-indigo-950/80 p-3 rounded-xl border border-indigo-400/30 text-indigo-100 text-[11px] leading-relaxed break-keep space-y-1">
+                    <div class="font-bold text-amber-300 flex items-center">
+                        <i class="fa-solid fa-coins mr-1.5"></i>시간의 화폐 가치 (기회비용 분석)
+                    </div>
+                    <p>${opportunityComment}</p>
+                </div>
+            `;
+
+            const sumMinutes = enriched.reduce((acc, r) => acc + r.oneWayMinutes, 0);
+            const sumMonthlyCost = enriched.reduce((acc, r) => acc + r.costInfo.finalCost, 0);
+            const sumFatigue = enriched.reduce((acc, r) => acc + r.effectiveFatigue, 0);
+
+            statAvgMin.textContent = `${Math.round(sumMinutes / enriched.length)}분`;
+            statAvgCost.textContent = `${Math.round(sumMonthlyCost / enriched.length).toLocaleString()}원`;
+            statAvgFatigue.textContent = `Lv.${(sumFatigue / enriched.length).toFixed(1)}`;
+        }
+
+        // 9단계: Chart.js 차트 2종 렌더링 (안전하게 기존 인스턴스 destroy 후 재생성)
+        function renderAnalyticsCharts() {
+            const barCanvas = document.getElementById('barChartCanvas');
+            const radarCanvas = document.getElementById('radarChartCanvas');
+            if (!barCanvas || !radarCanvas || typeof Chart === 'undefined') return;
+
+            if (barChartInstance) {
+                barChartInstance.destroy();
+                barChartInstance = null;
+            }
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+                radarChartInstance = null;
+            }
+
+            const enriched = computeEnrichedRoutes();
+            if (enriched.length === 0) return;
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#cbd5e1' : '#475569';
+            const gridColor = isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(148, 163, 184, 0.25)';
+
+            // 1. Dual-axis Bar Chart (Monthly Hours vs Monthly Cost in 10,000 KRW)
+            const labels = enriched.map(r => r.name.length > 8 ? r.name.slice(0, 8) + '…' : r.name);
+            const monthlyHoursData = enriched.map(r => Number(((r.oneWayMinutes * 2 * schoolDays) / 60).toFixed(1)));
+            const monthlyCostManwonData = enriched.map(r => Number((r.costInfo.finalCost / 10000).toFixed(2)));
+
+            barChartInstance = new Chart(barCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: '월 소요시간 (시간)',
+                            data: monthlyHoursData,
+                            backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                            borderColor: 'rgb(99, 102, 241)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'yTime'
+                        },
+                        {
+                            label: '월 실교통비 (만원)',
+                            data: monthlyCostManwonData,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: 'rgb(16, 185, 129)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            yAxisID: 'yCost'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: { color: textColor, font: { family: 'Noto Sans KR', size: 11 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: textColor, font: { family: 'Noto Sans KR', size: 10 } },
+                            grid: { display: false }
+                        },
+                        yTime: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: '시간 (h)', color: textColor, font: { size: 10 } },
+                            ticks: { color: textColor, font: { size: 10 } },
+                            grid: { color: gridColor }
+                        },
+                        yCost: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: '비용 (만원)', color: textColor, font: { size: 10 } },
+                            ticks: { color: textColor, font: { size: 10 } },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. TOP 3 Routes Radar Chart
+            const top3 = [...enriched].sort((a, b) => b.smartScore - a.smartScore).slice(0, 3);
+            const palette = [
+                { bg: 'rgba(99, 102, 241, 0.25)', border: 'rgb(99, 102, 241)' },
+                { bg: 'rgba(16, 185, 129, 0.25)', border: 'rgb(16, 185, 129)' },
+                { bg: 'rgba(245, 158, 11, 0.25)', border: 'rgb(245, 158, 11)' }
+            ];
+
+            radarChartInstance = new Chart(radarCanvas.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['빠르기', '저렴함', '적은 환승', '쾌적함(저피로)', '짧은 도보'],
+                    datasets: top3.map((r, i) => ({
+                        label: r.name,
+                        data: r.radarMetrics,
+                        backgroundColor: palette[i].bg,
+                        borderColor: palette[i].border,
+                        pointBackgroundColor: palette[i].border,
+                        borderWidth: 2
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor, font: { family: 'Noto Sans KR', size: 10 }, boxWidth: 12 }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { display: false, stepSize: 25 },
+                            grid: { color: gridColor },
+                            angleLines: { color: gridColor },
+                            pointLabels: {
+                                color: textColor,
+                                font: { family: 'Noto Sans KR', size: 11, weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function selectFatigueLevel(level) {
+            document.getElementById('inputFatigue').value = level;
+            const meta = FATIGUE_META[level] || FATIGUE_META[2];
+            document.getElementById('fatigueLevelDesc').textContent = meta.desc;
+
+            document.querySelectorAll('.fatigue-btn').forEach(btn => {
+                const lv = parseInt(btn.getAttribute('data-fatigue'), 10);
+                if (lv === level) {
+                    btn.className = 'fatigue-btn p-2 rounded-xl border-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-center transition flex flex-col items-center space-y-0.5 shadow-2xs';
+                } else {
+                    btn.className = 'fatigue-btn p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 text-center transition flex flex-col items-center space-y-0.5';
+                }
+            });
+        }
+
+        function setCostValue(val) {
+            const inputCost = document.getElementById('inputOneWayCost');
+            inputCost.value = val;
+            hideInputError('cost');
+        }
+
+        // 7단계: 기존 경로 수정 모드 진입
+        function startEditRoute(id) {
+            const target = routes.find(r => r.id === id);
+            if (!target) return;
+
+            editingRouteId = id;
+            document.getElementById('formHeaderTitle').textContent = '통학 방법 수정';
+            document.getElementById('formHeaderSubtitle').textContent = `"${target.name}"의 정보를 수정합니다.`;
+            document.getElementById('btnSubmitText').textContent = '수정 완료하기';
+            document.getElementById('btnSubmitIcon').className = 'fa-solid fa-check';
+            document.getElementById('navAddLabel').textContent = '방법 수정';
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+            document.getElementById('inputRouteName').value = target.name;
+            document.getElementById('inputOneWayMinutes').value = target.oneWayMinutes;
+            document.getElementById('inputWalkMinutes').value = target.walkMinutes ?? 10;
+            document.getElementById('inputOneWayCost').value = target.oneWayCost;
+            document.getElementById('inputTransfers').value = target.transfers;
+
+            const radio = document.querySelector(`input[name="transitType"][value="${target.type}"]`);
+            if (radio) radio.checked = true;
+
+            selectFatigueLevel(target.fatigue || 2);
+
+            hideInputError('name');
+            hideInputError('time');
+            hideInputError('walk');
+            hideInputError('cost');
+
+            switchTab('add');
+        }
+
+        function cancelEditRoute(goHome = true) {
+            editingRouteId = null;
+            document.getElementById('formHeaderTitle').textContent = '새 통학 방법 추가';
+            document.getElementById('formHeaderSubtitle').textContent = '비교할 통학 수단 및 피로도·도보 정보를 입력하세요.';
+            document.getElementById('btnSubmitText').textContent = '통학 방법에 추가하기';
+            document.getElementById('btnSubmitIcon').className = 'fa-solid fa-plus';
+            document.getElementById('navAddLabel').textContent = '방법 추가';
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+
+            document.getElementById('inputRouteName').value = '';
+            document.getElementById('inputOneWayMinutes').value = '';
+            document.getElementById('inputWalkMinutes').value = '10';
+            document.getElementById('inputOneWayCost').value = '';
+            document.getElementById('inputTransfers').value = '0';
+            selectFatigueLevel(2);
+
+            if (goHome) {
+                switchTab('comparison');
+            }
+        }
+
+        function hideInputError(type) {
+            if (type === 'name') {
+                document.getElementById('nameErrorMsg')?.classList.add('hidden');
+                document.getElementById('inputRouteName')?.classList.remove('border-rose-400', 'ring-2', 'ring-rose-200');
+            } else if (type === 'time') {
+                document.getElementById('timeErrorMsg')?.classList.add('hidden');
+                document.getElementById('inputOneWayMinutes')?.classList.remove('border-rose-400', 'ring-2', 'ring-rose-200');
+            } else if (type === 'walk') {
+                document.getElementById('walkErrorMsg')?.classList.add('hidden');
+                document.getElementById('inputWalkMinutes')?.classList.remove('border-rose-400', 'ring-2', 'ring-rose-200');
+            } else if (type === 'cost') {
+                document.getElementById('costErrorMsg')?.classList.add('hidden');
+                document.getElementById('inputOneWayCost')?.classList.remove('border-rose-400', 'ring-2', 'ring-rose-200');
+            }
+        }
+
+        function showInputError(type, msg) {
+            const map = {
+                name: { err: 'nameErrorMsg', input: 'inputRouteName' },
+                time: { err: 'timeErrorMsg', input: 'inputOneWayMinutes' },
+                walk: { err: 'walkErrorMsg', input: 'inputWalkMinutes' },
+                cost: { err: 'costErrorMsg', input: 'inputOneWayCost' }
+            };
+            const target = map[type];
+            if (!target) return;
+            const el = document.getElementById(target.err);
+            if (el) {
+                if (msg) el.querySelector('span').textContent = msg;
+                el.classList.remove('hidden');
+            }
+            const input = document.getElementById(target.input);
+            input?.classList.add('border-rose-400', 'ring-2', 'ring-rose-200');
+            input?.focus();
+        }
+
+        function handleSaveRoute() {
+            hideInputError('name');
+            hideInputError('time');
+            hideInputError('walk');
+            hideInputError('cost');
+
+            const nameInput = document.getElementById('inputRouteName');
+            const timeInput = document.getElementById('inputOneWayMinutes');
+            const walkInput = document.getElementById('inputWalkMinutes');
+            const costInput = document.getElementById('inputOneWayCost');
+            const transfersInput = document.getElementById('inputTransfers');
+            const fatigueInput = document.getElementById('inputFatigue');
+            const typeRadio = document.querySelector('input[name="transitType"]:checked');
+
+            const name = nameInput.value.trim();
+            const rawTime = timeInput.value.trim();
+            const rawWalk = walkInput.value.trim();
+            const rawCost = costInput.value.trim();
+            const transfers = parseInt(transfersInput.value, 10) || 0;
+            const fatigue = parseInt(fatigueInput.value, 10) || 2;
+            const type = typeRadio ? typeRadio.value : 'BUS';
+
+            if (!name) {
+                showInputError('name', '통학 방법 이름을 입력해 주세요 (공백 불가).');
+                return;
+            }
+
+            const time = parseInt(rawTime, 10);
+            if (rawTime === '' || isNaN(time) || time <= 0) {
+                showInputError('time', '1분 이상의 올바른 편도 시간을 입력해 주세요.');
+                return;
+            }
+
+            const walkMinutes = parseInt(rawWalk, 10);
+            if (rawWalk === '' || isNaN(walkMinutes) || walkMinutes < 0) {
+                showInputError('walk', '0분 이상의 올바른 도보 시간을 입력해 주세요.');
+                return;
+            }
+
+            const cost = parseInt(rawCost, 10);
+            if (rawCost === '' || isNaN(cost) || cost < 0) {
+                showInputError('cost', '0원 이상의 올바른 금액을 입력해 주세요.');
+                return;
+            }
+
+            if (editingRouteId) {
+                // Update existing route
+                routes = routes.map(r => r.id === editingRouteId ? {
+                    ...r,
+                    name,
+                    type,
+                    oneWayMinutes: time,
+                    walkMinutes,
+                    oneWayCost: cost,
+                    transfers: Math.max(0, transfers),
+                    fatigue
+                } : r);
+                saveRoutesToStorage();
+                cancelEditRoute(false);
+                updateUI();
+                showToast('통학 방법 정보가 수정되었습니다.');
+                switchTab('comparison');
+            } else {
+                // Add new route
+                const newRoute = {
+                    id: 'route_' + Date.now(),
+                    name,
+                    type,
+                    oneWayMinutes: time,
+                    walkMinutes,
+                    oneWayCost: cost,
+                    transfers: Math.max(0, transfers),
+                    fatigue
+                };
+                routes.unshift(newRoute);
+                saveRoutesToStorage();
+                cancelEditRoute(false);
+                updateUI();
+                showToast('새로운 통학 방법이 안전하게 추가되었습니다.');
+                switchTab('comparison');
+            }
+        }
+
+        function openDataModal() {
+            document.getElementById('importErrorMsg').classList.add('hidden');
+            document.getElementById('dataModal').classList.remove('hidden');
+        }
+
+        function closeDataModal() {
+            document.getElementById('dataModal').classList.add('hidden');
+        }
+
+        function copyTextToClipboard(text, successMsg) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast('복사에 실패했습니다.', true);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function exportRoutesJson() {
+            const jsonStr = JSON.stringify(routes, null, 2);
+            copyTextToClipboard(jsonStr, '백업용 JSON 데이터가 클립보드에 복사되었습니다!');
+        }
+
+        function exportRoutesSummaryText() {
+            const enriched = computeEnrichedRoutes();
+            if (enriched.length === 0) {
+                showToast('공유할 통학 경로 데이터가 없습니다.', true);
+                return;
+            }
+            const lines = [
+                `[통학 방법 비교기 Pro - 월 ${schoolDays}일 등교 기준]`,
+                ...enriched.map((r, i) =>
+                    `${i + 1}. ${r.name} | 편도 ${r.oneWayMinutes}분(도보 ${r.walkMinutes}분) | 월 실교통비 ${r.costInfo.finalCost.toLocaleString()}원 | 피로도 Lv.${r.effectiveFatigue} | 추천 ${r.smartScore}점`
+                )
+            ];
+            copyTextToClipboard(lines.join('\n'), '통학 비교 요약 텍스트가 클립보드에 복사되었습니다!');
+        }
+
+        function importRoutesJson() {
+            const raw = document.getElementById('importJsonTextarea').value.trim();
+            const errEl = document.getElementById('importErrorMsg');
+            errEl.classList.add('hidden');
+
+            if (!raw) {
+                errEl.textContent = '붙여넣은 JSON 데이터가 비어 있습니다.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed) || parsed.length === 0) {
+                    throw new Error('유효한 배열 형식이 아닙니다.');
+                }
+
+                const validated = parsed.map((item, idx) => {
+                    if (!item.name || typeof item.oneWayMinutes !== 'number' || typeof item.oneWayCost !== 'number') {
+                        throw new Error(`${idx + 1}번째 항목의 필수 속성(name, oneWayMinutes, oneWayCost)이 누락되었습니다.`);
+                    }
+                    return {
+                        id: item.id || ('route_imp_' + Date.now() + '_' + idx),
+                        name: String(item.name),
+                        type: ['BUS', 'SUBWAY', 'MIX', 'OTHER'].includes(item.type) ? item.type : 'BUS',
+                        oneWayMinutes: Math.max(1, parseInt(item.oneWayMinutes, 10)),
+                        oneWayCost: Math.max(0, parseInt(item.oneWayCost, 10)),
+                        transfers: Math.max(0, parseInt(item.transfers || 0, 10)),
+                        walkMinutes: Math.max(0, parseInt(item.walkMinutes ?? 10, 10)),
+                        fatigue: Math.min(5, Math.max(1, parseInt(item.fatigue || 2, 10)))
+                    };
+                });
+
+                routes = validated;
+                saveRoutesToStorage();
+                updateUI();
+                document.getElementById('importJsonTextarea').value = '';
+                closeDataModal();
+                showToast(`총 ${validated.length}개의 통학 경로를 성공적으로 불러왔습니다!`);
+            } catch (err) {
+                errEl.textContent = '올바른 JSON 형식이 아닙니다: ' + err.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function promptDeleteRoute(id, name) {
+            pendingDeleteId = id;
+            document.getElementById('deleteModalTargetDesc').textContent = `"${name}"`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+
+            document.getElementById('btnConfirmDelete').onclick = () => {
+                executeDeleteRoute(pendingDeleteId);
+                closeDeleteModal();
+            };
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        function executeDeleteRoute(id) {
+            routes = routes.filter(r => r.id !== id);
+            if (editingRouteId === id) {
+                cancelEditRoute(false);
+            }
+            saveRoutesToStorage();
+            updateUI();
+            showToast('통학 방법이 삭제되었습니다.');
+        }
+
+        let toastTimer;
+        function showToast(message, isWarning = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+
+            if (isWarning) {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-amber-400 mr-2 text-sm shrink-0';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600 mr-2 text-sm shrink-0';
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        window.onload = function() {
+            initApp();
+
+            document.getElementById('inputRouteName')?.addEventListener('input', () => hideInputError('name'));
+            document.getElementById('inputOneWayMinutes')?.addEventListener('input', () => hideInputError('time'));
+            document.getElementById('inputWalkMinutes')?.addEventListener('input', () => hideInputError('walk'));
+            document.getElementById('inputOneWayCost')?.addEventListener('input', () => hideInputError('cost'));
+        };
+    </script>
+</body>
+</html>
